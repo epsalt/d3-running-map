@@ -16,8 +16,9 @@ from dateutil import parser
 
 DATA_DIR = "./data"
 OUT_FILE = "./data/gpx_rollup.csv"
+MIN_TIME_DIFF = 20
 
-def process_gpx(gpx_file, writer, index=0):
+def process_gpx(gpx_file, writer, downsample, index=0):
     """Parse a gpx file into a flat format of [lat, lon, time, elapsed, n]
 
     Writes parsed gpx file to the provided writer.
@@ -31,7 +32,8 @@ def process_gpx(gpx_file, writer, index=0):
 
     tree = ET.parse(gpx_file)
     trksegs = tree.getroot()[1][1].findall('{http://www.topografix.com/GPX/1/1}trkpt')
-    out = []
+
+    last_written = -9999
 
     for i, trkpt in enumerate(trksegs):
         lat = trkpt.attrib['lat']
@@ -42,14 +44,18 @@ def process_gpx(gpx_file, writer, index=0):
 
         if i == 0:
             intial_time = datetime
-        time_diff = datetime - intial_time
+        elapsed = datetime - intial_time
 
-        writer.writerow([lat, lon, time, time_diff.seconds, index])
+        if elapsed.seconds - last_written > downsample:
+            writer.writerow([lat, lon, time, elapsed.seconds, index])
+            last_written = elapsed.seconds
+        else:
+            pass
 
-    return out
+def batch_process_gpx(data_dir, out_file, min_time_diff):
+    """Process all .gpx files in data_dir to a .csv named out_file
 
-def batch_process_gpx(data_dir, out_file):
-    """Process all .gpx files in data_dir to a .csv named out_file"""
+    """
 
     with open(out_file, "w") as open_file:
         writer = csv.writer(open_file)
@@ -57,7 +63,7 @@ def batch_process_gpx(data_dir, out_file):
 
         gpx_files = glob.glob(join(data_dir, "*.gpx"))
         for i, gpx_file in enumerate(gpx_files):
-            process_gpx(gpx_file, writer, i)
+            process_gpx(gpx_file, writer, min_time_diff, i)
 
 if __name__ == "__main__":
-    batch_process_gpx(DATA_DIR, OUT_FILE)
+    batch_process_gpx(DATA_DIR, OUT_FILE, MIN_TIME_DIFF)
