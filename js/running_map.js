@@ -1,3 +1,5 @@
+/*global d3*/
+
 var pi = Math.PI,
     tau = 2 * pi;
 
@@ -40,12 +42,19 @@ d3.csv("data/gpx_rollup.csv", function(data) {
     svg.selectAll("path")
         .data(dataByIndex.entries(data))
         .enter().append("path")
-        .attr("id", function(d) {return d.key;})
-        .attr("stroke", "blue")
+        .attr("stroke", "red")
         .attr("stroke-width", 2)
+        .attr("stroke-opacity", 0.2)
         .attr("fill", "none");
 
-    var wait = 5, lastUpdate = -1000;
+    svg.selectAll("circle")
+        .data(dataByIndex.entries(data))
+        .enter().append("circle")
+        .attr("stroke", "black")
+        .attr("fill", "none")
+        .attr("r", 2);
+
+    var wait = 15, lastUpdate = -1000;
     d3.timer(function(elapsed) {
         if(elapsed - lastUpdate > wait) {
             update(elapsed, dataByIndex);
@@ -56,11 +65,18 @@ d3.csv("data/gpx_rollup.csv", function(data) {
 
     function update(elapsed, dataByIndex){
 
-        var dataFiltered = dataByIndex.entries(data.filter(function(d) {return d.elapsed < elapsed / 10;}));
+        var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed / 10;}),
+            nested = dataByIndex.entries(elapsedFilter),
+            currentPoints = nested.map(function(d) {return d.values[d.values.length - 1];});
 
         svg.selectAll("path")
-            .data(dataFiltered)
+            .data(nested)
             .attr("d", function(d) {return line(d.values);});
+
+        svg.selectAll("circle")
+            .data(currentPoints)
+            .attr("cx", function(d) {return projection([d.lon, d.lat])[0];})
+            .attr("cy", function(d) {return projection([d.lon, d.lat])[1];});
     }
 
 });
