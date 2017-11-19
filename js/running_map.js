@@ -33,33 +33,34 @@ d3.csv("data/gpx_rollup.csv", function(data) {
     var line = d3.line()
         .x(function(d) {return projection([d.lon, d.lat])[0];})
         .y(function(d) {return projection([d.lon, d.lat])[1];});
-    
-    var wait = 5000, lastUpdate = -1000;
+
+    var dataByIndex = d3.nest()
+        .key(function(d) {return d.index;});
+
+    svg.selectAll("path")
+        .data(dataByIndex.entries(data))
+        .enter().append("path")
+        .attr("id", function(d) {return d.key;})
+        .attr("stroke", "blue")
+        .attr("stroke-width", 2)
+        .attr("fill", "none");
+
+    var wait = 5, lastUpdate = -1000;
     d3.timer(function(elapsed) {
         if(elapsed - lastUpdate > wait) {
-            update(elapsed);
+            update(elapsed, dataByIndex);
             lastUpdate = elapsed;
             console.log("UPDATE!");
         }
     });
 
-    function update(elapsed){
+    function update(elapsed, dataByIndex){
 
-        var dataByIndex = d3.nest()
-            .key(function(d) {return d.index;})
-            .entries(data.filter(function(d) {return d.elapsed < elapsed / 50;}));
+        var dataFiltered = dataByIndex.entries(data.filter(function(d) {return d.elapsed < elapsed / 10;}));
 
         svg.selectAll("path")
-            .remove();
-        
-        svg.selectAll("path")
-            .data(dataByIndex)
-            .enter().append("path")
-            .attr("d", function(d) {return line(d.values);})
-            .attr("id", function(d) {return d.key;})
-            .attr("stroke", "blue")
-            .attr("stroke-width", 2)
-            .attr("fill", "none");
+            .data(dataFiltered)
+            .attr("d", function(d) {return line(d.values);});
     }
 
 });
