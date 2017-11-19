@@ -8,9 +8,9 @@ var svg = d3.select("svg"),
     height = +svg.attr("height");
 
 var projection = d3.geoMercator()
-    .scale((1 << 21) / tau)
+    .scale((1 << 20) / tau)
     .translate([width / 2, height / 2])
-    .center([-114.07, 51.05]);
+    .center([-114.09, 51.0375]);
 
 var path = d3.geoPath()
     .projection(projection);
