@@ -96,10 +96,10 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("r", 2)
         .attr("fill", "red");
 
-    var wait = 30, lastUpdate = -1000, speedup = 10;
+    var wait = 30, lastUpdate = -1000, speedup = 1;
     var t = d3.timer(function(elapsed) {
         if(elapsed - lastUpdate > wait) {
-            update(elapsed);
+            update(elapsed / speedup);
             lastUpdate = elapsed;
         }
         if (elapsed > maxElapsed * speedup) t.stop();
@@ -107,12 +107,12 @@ d3.csv("data/gpx_rollup.csv", function(data) {
 
     function update(elapsed){
 
-        var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed / speedup;}),
+        var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed;}),
             nested = dataByIndex.entries(elapsedFilter),
             currentPoints = nested.map(function(d) {return d.values[d.values.length - 1];});
 
         var date = new Date(null);
-        date.setSeconds(elapsed / speedup);
+        date.setSeconds(elapsed);
 
         svg.select("text")
             .text("Elapsed " + date.toISOString().substr(11, 8));
@@ -127,7 +127,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
             .attr("cy", function(d) {return projection([d.lon, d.lat])[1];});
 
         svg.select(".progress")
-            .attr("cx", x(elapsed / speedup));
+            .attr("cx", x(elapsed));
     }
 
 });
