@@ -23,6 +23,7 @@ var tiles = d3.tile()
 
 d3.csv("data/gpx_rollup.csv", function(data) {
 
+    // OSM Map Tiles
     svg.selectAll("image")
         .data(tiles)
         .enter().append("image")
@@ -32,6 +33,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("width", tiles.scale)
         .attr("height", tiles.scale);
 
+    // Helper Functions
     var line = d3.line()
         .x(function(d) {return projection([d.lon, d.lat])[0];})
         .y(function(d) {return projection([d.lon, d.lat])[1];});
@@ -39,6 +41,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
     var dataByIndex = d3.nest()
         .key(function(d) {return d.index;});
 
+    // Visualization Elements
     svg.selectAll("path")
         .data(dataByIndex.entries(data))
         .enter().append("path")
@@ -50,41 +53,66 @@ d3.csv("data/gpx_rollup.csv", function(data) {
     svg.selectAll("circle")
         .data(dataByIndex.entries(data))
         .enter().append("circle")
+        .attr("class", "runner")
         .attr("stroke", "black")
         .attr("fill", "none")
         .attr("r", 2);
 
+    // Legend Elements
     svg.append("rect")
-        .attr("x", 350)
-        .attr("y", 525)
+        .attr("x", 345)
+        .attr("y", 520)
         .attr("width", 140)
-        .attr("height", 70)
+        .attr("height", 75)
         .attr("fill", "#fff")
         .attr("stroke", "#555")
         .attr("stroke-width", 0.25);
 
     svg.append("text")
-        .attr("x", 360)
+        .attr("x", 355)
         .attr("y", 540)
         .attr("class", "legend")
         .text("Elapsed - 00:00:00");
 
-    var wait = 30, lastUpdate = -1000;
-    d3.timer(function(elapsed) {
+    var maxElapsed = Math.max.apply(Math,(data.map(function(d) {return d.elapsed;})));
+
+    var x = d3.scaleLinear()
+        .domain([0, maxElapsed])
+        .range([0,107]);
+
+    svg.append("rect")
+        .attr("x", 357.5)
+        .attr("y", 550)
+        .attr("height", 5)
+        .attr("width", 112)
+        .attr("fill", "#fff")
+        .attr("stroke", "#000")
+        .attr("stroke-width", 1);
+
+    svg.append("circle")
+        .attr("class", "progress")
+        .attr("cy", 552.5)
+        .attr("transform", "translate(360, 0)")
+        .attr("r", 2)
+        .attr("fill", "red");
+
+    var wait = 30, lastUpdate = -1000, speedup = 10;
+    var t = d3.timer(function(elapsed) {
         if(elapsed - lastUpdate > wait) {
-            update(elapsed, dataByIndex);
+            update(elapsed);
             lastUpdate = elapsed;
         }
+        if (elapsed > maxElapsed * speedup) t.stop();
     });
 
-    function update(elapsed, dataByIndex){
+    function update(elapsed){
 
-        var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed / 10;}),
+        var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed / speedup;}),
             nested = dataByIndex.entries(elapsedFilter),
             currentPoints = nested.map(function(d) {return d.values[d.values.length - 1];});
 
         var date = new Date(null);
-        date.setSeconds(elapsed / 10);
+        date.setSeconds(elapsed / speedup);
 
         svg.select("text")
             .text("Elapsed " + date.toISOString().substr(11, 8));
@@ -93,10 +121,13 @@ d3.csv("data/gpx_rollup.csv", function(data) {
             .data(nested)
             .attr("d", function(d) {return line(d.values);});
 
-        svg.selectAll("circle")
+        svg.selectAll(".runner")
             .data(currentPoints)
             .attr("cx", function(d) {return projection([d.lon, d.lat])[0];})
             .attr("cy", function(d) {return projection([d.lon, d.lat])[1];});
+
+        svg.select(".progress")
+            .attr("cx", x(elapsed / speedup));
     }
 
 });
