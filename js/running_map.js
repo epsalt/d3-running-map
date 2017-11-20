@@ -96,16 +96,20 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("r", 2)
         .attr("fill", "red");
 
-    var wait = 30, lastUpdate = -1000, speedup = 1;
-    var t = d3.timer(function(elapsed) {
-        if(elapsed - lastUpdate > wait) {
-            update(elapsed / speedup);
-            lastUpdate = elapsed;
+    var start = null;
+    function step(timestamp) {
+        if (!start) start = timestamp;
+        var progress = timestamp - start;
+        if (progress < maxElapsed) {
+            draw(progress);
+        } else {
+            start = null;
         }
-        if (elapsed > maxElapsed * speedup) t.stop();
-    });
+        window.requestAnimationFrame(step);
+    }
+    window.requestAnimationFrame(step);
 
-    function update(elapsed){
+    function draw(elapsed){
 
         var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed;}),
             nested = dataByIndex.entries(elapsedFilter),
