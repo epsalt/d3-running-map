@@ -96,18 +96,19 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("r", 2)
         .attr("fill", "red");
 
-    var start = null;
-    function step(timestamp) {
-        if (!start) start = timestamp;
-        var progress = timestamp - start;
-        if (progress < maxElapsed) {
-            draw(progress);
+    var elapsed = null, reqID, speed = 10, going = true;
+    function step() {
+        if (!elapsed) elapsed = 0;
+        if (elapsed < maxElapsed) {
+            draw(elapsed);
         } else {
-            start = null;
+            elapsed = null;
         }
-        window.requestAnimationFrame(step);
+        reqID = window.requestAnimationFrame(step);
+        elapsed = elapsed + (1 * speed);
     }
-    window.requestAnimationFrame(step);
+    reqID = window.requestAnimationFrame(step);
+
 
     function draw(elapsed){
 
