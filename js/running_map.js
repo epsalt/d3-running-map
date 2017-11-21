@@ -72,6 +72,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("x", 355)
         .attr("y", 540)
         .attr("class", "legend")
+        .attr("id", "elapsed")
         .text("Elapsed - 00:00:00");
 
     var maxElapsed = Math.max.apply(Math,(data.map(function(d) {return d.elapsed;})));
@@ -96,6 +97,13 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("r", 2)
         .attr("fill", "red");
 
+    var pauseResume = svg.append("text")
+        .attr("x", 355)
+        .attr("y", 575)
+        .attr("class", "legend")
+        .attr("id", "pause-resume")
+        .text("Pause");
+
     var elapsed = null, reqID, speed = 10, going = true;
     function step() {
         if (!elapsed) elapsed = 0;
@@ -109,6 +117,19 @@ d3.csv("data/gpx_rollup.csv", function(data) {
     }
     reqID = window.requestAnimationFrame(step);
 
+    pauseResume.on("click", function() {
+        if (going) {
+            cancelAnimationFrame(reqID);
+            svg.select("#pause-resume")
+                .text("Resume");
+            going = false;
+        } else {
+            reqID = requestAnimationFrame(step);
+            svg.select("#pause-resume")
+                .text("Pause");
+            going = true;
+        }
+    });
 
     function draw(elapsed){
 
@@ -119,7 +140,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         var date = new Date(null);
         date.setSeconds(elapsed);
 
-        svg.select("text")
+        svg.select("#elapsed")
             .text("Elapsed " + date.toISOString().substr(11, 8));
 
         svg.selectAll("path")
