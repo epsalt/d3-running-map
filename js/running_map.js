@@ -23,6 +23,66 @@ var tiles = d3.tile()
 
 d3.csv("data/gpx_rollup.csv", function(data) {
 
+    // Helper Functions
+    var line = d3.line()
+        .x(function(d) {return projection([d.lon, d.lat])[0];})
+        .y(function(d) {return projection([d.lon, d.lat])[1];});
+
+    var maxElapsed = Math.max.apply(Math,(data.map(function(d) {return d.elapsed;})));
+
+    var x = d3.scaleLinear()
+        .domain([0, maxElapsed])
+        .range([0,120.5]);
+
+    var dataByIndex = d3.nest()
+        .key(function(d) {return d.index;});
+
+    function speedChange(newSpeed, id) {
+        speed = newSpeed;
+        svg.selectAll(".legend, .speed")
+            .attr("font-weight", "normal");
+        svg.select(id)
+            .attr("font-weight", "bold");
+    }
+
+    var elapsed = null, reqID, speed = 10, going = true;
+    function step() {
+        if (!elapsed) elapsed = 0;
+        if (elapsed < maxElapsed) {
+            draw(elapsed);
+        } else {
+            elapsed = null;
+        }
+        reqID = window.requestAnimationFrame(step);
+        elapsed = elapsed + (1 * speed);
+    }
+    reqID = window.requestAnimationFrame(step);
+
+    function draw(elapsed){
+
+        var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed;}),
+            nested = dataByIndex.entries(elapsedFilter),
+            currentPoints = nested.map(function(d) {return d.values[d.values.length - 1];});
+
+        var date = new Date(null);
+        date.setSeconds(elapsed);
+
+        svg.select("#elapsed")
+            .text("Elapsed - " + date.toISOString().substr(11, 8));
+
+        svg.selectAll("path")
+            .data(nested)
+            .attr("d", function(d) {return line(d.values);});
+
+        svg.selectAll(".runner")
+            .data(currentPoints)
+            .attr("cx", function(d) {return projection([d.lon, d.lat])[0];})
+            .attr("cy", function(d) {return projection([d.lon, d.lat])[1];});
+
+        svg.select(".progress")
+            .attr("cx", x(elapsed));
+    }
+
     // OSM Map Tiles
     svg.selectAll("image")
         .data(tiles)
@@ -32,14 +92,6 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("y", function(d) { return (d[1] + tiles.translate[1]) * tiles.scale; })
         .attr("width", tiles.scale)
         .attr("height", tiles.scale);
-
-    // Helper Functions
-    var line = d3.line()
-        .x(function(d) {return projection([d.lon, d.lat])[0];})
-        .y(function(d) {return projection([d.lon, d.lat])[1];});
-
-    var dataByIndex = d3.nest()
-        .key(function(d) {return d.index;});
 
     // Visualization Elements
     svg.selectAll("path")
@@ -62,8 +114,8 @@ d3.csv("data/gpx_rollup.csv", function(data) {
     svg.append("rect")
         .attr("x", 345)
         .attr("y", 520)
-        .attr("width", 140)
-        .attr("height", 75)
+        .attr("width", 150)
+        .attr("height", 67.5)
         .attr("fill", "#fff")
         .attr("stroke", "#555")
         .attr("stroke-width", 0.25);
@@ -75,17 +127,11 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("id", "elapsed")
         .text("Elapsed - 00:00:00");
 
-    var maxElapsed = Math.max.apply(Math,(data.map(function(d) {return d.elapsed;})));
-
-    var x = d3.scaleLinear()
-        .domain([0, maxElapsed])
-        .range([0,107]);
-
     svg.append("rect")
         .attr("x", 357.5)
         .attr("y", 550)
         .attr("height", 5)
-        .attr("width", 112)
+        .attr("width", 125)
         .attr("fill", "#fff")
         .attr("stroke", "#000")
         .attr("stroke-width", 1);
@@ -102,58 +148,52 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("y", 575)
         .attr("class", "legend")
         .attr("id", "pause-resume")
-        .text("Pause");
+        .text("Pause")
+        .on("click", function() {
+            if (going) {
+                cancelAnimationFrame(reqID);
+                svg.select("#pause-resume")
+                    .text("Resume");
+                going = false;
+            } else {
+                reqID = requestAnimationFrame(step);
+                svg.select("#pause-resume")
+                    .text("Pause");
+                going = true;
+            }
+        });
 
-    var elapsed = null, reqID, speed = 10, going = true;
-    function step() {
-        if (!elapsed) elapsed = 0;
-        if (elapsed < maxElapsed) {
-            draw(elapsed);
-        } else {
-            elapsed = null;
-        }
-        reqID = window.requestAnimationFrame(step);
-        elapsed = elapsed + (1 * speed);
-    }
-    reqID = window.requestAnimationFrame(step);
+    svg.append("text")
+        .attr("x", 405)
+        .attr("y", 575)
+        .attr("class", "legend speed")
+        .attr("id", "one-times")
+        .attr("font-weight", "bold")
+        .text("1x")
+        .on("click", function() {speedChange(10, "#one-times");});
 
-    pauseResume.on("click", function() {
-        if (going) {
-            cancelAnimationFrame(reqID);
-            svg.select("#pause-resume")
-                .text("Resume");
-            going = false;
-        } else {
-            reqID = requestAnimationFrame(step);
-            svg.select("#pause-resume")
-                .text("Pause");
-            going = true;
-        }
-    });
+    svg.append("text")
+        .attr("x", 425)
+        .attr("y", 575)
+        .attr("class", "legend speed")
+        .attr("id", "two-times")
+        .text("2x")
+        .on("click", function() {speedChange(20, "#two-times");});
 
-    function draw(elapsed){
+    svg.append("text")
+        .attr("x", 445)
+        .attr("y", 575)
+        .attr("class", "legend speed")
+        .attr("id", "five-times")
+        .text("5x")
+        .on("click", function() {speedChange(50, "#five-times");});
 
-        var elapsedFilter = data.filter(function(d) {return d.elapsed < elapsed;}),
-            nested = dataByIndex.entries(elapsedFilter),
-            currentPoints = nested.map(function(d) {return d.values[d.values.length - 1];});
-
-        var date = new Date(null);
-        date.setSeconds(elapsed);
-
-        svg.select("#elapsed")
-            .text("Elapsed " + date.toISOString().substr(11, 8));
-
-        svg.selectAll("path")
-            .data(nested)
-            .attr("d", function(d) {return line(d.values);});
-
-        svg.selectAll(".runner")
-            .data(currentPoints)
-            .attr("cx", function(d) {return projection([d.lon, d.lat])[0];})
-            .attr("cy", function(d) {return projection([d.lon, d.lat])[1];});
-
-        svg.select(".progress")
-            .attr("cx", x(elapsed));
-    }
+    svg.append("text")
+        .attr("x", 465)
+        .attr("y", 575)
+        .attr("class", "legend speed")
+        .attr("id", "ten-times")
+        .text("10x")
+        .on("click", function() {speedChange(100, "#ten-times");});
 
 });
