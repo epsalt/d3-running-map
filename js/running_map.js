@@ -45,14 +45,12 @@ d3.csv("data/gpx_rollup.csv", function(data) {
             .attr("font-weight", "bold");
     }
 
-    var elapsed = null, reqID, speed = 10, going = true;
+    var elapsed = 0, reqID, speed = 10, going = true;
     function step() {
-        if (!elapsed) elapsed = 0;
-        if (elapsed < maxElapsed) {
-            draw(elapsed);
-        } else {
-            elapsed = null;
+        if (elapsed > maxElapsed) {
+            elapsed = 0;
         }
+        draw(elapsed);
         reqID = window.requestAnimationFrame(step);
         elapsed = elapsed + (1 * speed);
     }
