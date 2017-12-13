@@ -117,7 +117,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
 
     // Legend Elements
     svg.append("rect")
-        .attr("x", 345)
+        .attr("x", 645)
         .attr("y", 520)
         .attr("width", 150)
         .attr("height", 67.5)
@@ -126,14 +126,14 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .attr("stroke-width", 0.25);
 
     svg.append("text")
-        .attr("x", 355)
+        .attr("x", 655)
         .attr("y", 540)
         .attr("class", "legend")
         .attr("id", "elapsed")
         .text("Elapsed - 00:00:00");
 
     svg.append("rect")
-        .attr("x", 357.5)
+        .attr("x", 657.5)
         .attr("y", 550)
         .attr("height", 5)
         .attr("width", 125)
@@ -144,12 +144,12 @@ d3.csv("data/gpx_rollup.csv", function(data) {
     svg.append("circle")
         .attr("class", "progress")
         .attr("cy", 552.5)
-        .attr("transform", "translate(360, 0)")
+        .attr("transform", "translate(660, 0)")
         .attr("r", 2)
         .attr("fill", "red");
 
     var pauseResume = svg.append("text")
-        .attr("x", 355)
+        .attr("x", 655)
         .attr("y", 575)
         .attr("class", "legend")
         .attr("id", "pause-resume")
@@ -169,7 +169,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         });
 
     svg.append("text")
-        .attr("x", 405)
+        .attr("x", 705)
         .attr("y", 575)
         .attr("class", "legend speed")
         .attr("id", "one-times")
@@ -178,7 +178,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .on("click", function() {speedChange(10, "#one-times");});
 
     svg.append("text")
-        .attr("x", 425)
+        .attr("x", 725)
         .attr("y", 575)
         .attr("class", "legend speed")
         .attr("id", "two-times")
@@ -186,7 +186,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .on("click", function() {speedChange(20, "#two-times");});
 
     svg.append("text")
-        .attr("x", 445)
+        .attr("x", 745)
         .attr("y", 575)
         .attr("class", "legend speed")
         .attr("id", "five-times")
@@ -194,7 +194,7 @@ d3.csv("data/gpx_rollup.csv", function(data) {
         .on("click", function() {speedChange(50, "#five-times");});
 
     svg.append("text")
-        .attr("x", 465)
+        .attr("x", 765)
         .attr("y", 575)
         .attr("class", "legend speed")
         .attr("id", "ten-times")
