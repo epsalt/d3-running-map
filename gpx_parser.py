@@ -12,13 +12,14 @@ import glob
 import xml.etree.ElementTree as ET
 from os.path import join
 
+import pandas as pd
 from dateutil import parser
+from pandas import DataFrame
 
 DATA_DIR = "./data"
 OUT_FILE = "./data/gpx_rollup.csv"
-MIN_TIME_DIFF = 20
 
-def process_gpx(gpx_file, writer, downsample, index=0):
+def process_gpx(gpx_file):
     """Parse a gpx file into a flat format of [lat, lon, time, elapsed, n]
 
     Writes parsed gpx file to the provided writer.
@@ -35,6 +36,7 @@ def process_gpx(gpx_file, writer, downsample, index=0):
 
     last_written = -9999
 
+    out = list()
     for i, trkpt in enumerate(trksegs):
         lat = trkpt.attrib['lat']
         lon = trkpt.attrib['lon']
@@ -42,28 +44,35 @@ def process_gpx(gpx_file, writer, downsample, index=0):
         time = trkpt.find('{http://www.topografix.com/GPX/1/1}time').text
         datetime = parser.parse(time)
 
-        if i == 0:
-            intial_time = datetime
-        elapsed = datetime - intial_time
+        out.append([lat, lon, datetime])
 
-        if elapsed.seconds - last_written > downsample:
-            writer.writerow([lat, lon, time, elapsed.seconds, index])
-            last_written = elapsed.seconds
-        else:
-            pass
+    return out
 
-def batch_process_gpx(data_dir, out_file, min_time_diff):
+def resample(data):
+    df = DataFrame(data, columns = ['lat', 'lon', 'datetime'])
+    df = df[~df.index.duplicated(keep='first')]
+    df['elapsed'] = df['datetime'] - min((df['datetime']))
+    df = df.set_index('elapsed')
+    df = df[~df.index.duplicated(keep='first')]
+    resampled = df.resample("15S").pad().interpolate(method="linear")
+    resampled = resampled.drop(['datetime'], axis=1)
+    return resampled
+
+def batch_process_gpx(data_dir, out_file):
     """Process all .gpx files in data_dir to a .csv named out_file
 
     """
 
     with open(out_file, "w") as open_file:
         writer = csv.writer(open_file)
-        writer.writerow(['lat', 'lon', 'time', 'elapsed', 'index'])
+        writer.writerow(['elapsed', 'lat', 'lon', 'index'])
 
         gpx_files = glob.glob(join(data_dir, "*.gpx"))
         for i, gpx_file in enumerate(gpx_files):
-            process_gpx(gpx_file, writer, min_time_diff, i)
+            print(gpx_file)
+            resampled = resample(process_gpx(gpx_file))
+            resampled['index'] = i
+            resampled.to_csv(open_file, header=False)
 
 if __name__ == "__main__":
-    batch_process_gpx(DATA_DIR, OUT_FILE, MIN_TIME_DIFF)
+    batch_process_gpx(DATA_DIR, OUT_FILE)
