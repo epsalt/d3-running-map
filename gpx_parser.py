@@ -54,8 +54,8 @@ def resample(data):
     df['elapsed'] = df['datetime'] - min((df['datetime']))
     df = df.set_index('elapsed')
     df = df[~df.index.duplicated(keep='first')]
-    resampled = df.resample("15S").pad().interpolate(method="linear")
-    resampled = resampled.drop(['datetime'], axis=1)
+    resampled = df.resample("30S").pad().interpolate(method="linear")
+    resampled = resampled.drop(['datetime'], axis=1)   
     return resampled
 
 def batch_process_gpx(data_dir, out_file):
@@ -65,12 +65,13 @@ def batch_process_gpx(data_dir, out_file):
 
     with open(out_file, "w") as open_file:
         writer = csv.writer(open_file)
-        writer.writerow(['elapsed', 'lat', 'lon', 'index'])
+        writer.writerow(['elapsed', 'len', 'lat', 'lon', 'index'])
 
         gpx_files = glob.glob(join(data_dir, "*.gpx"))
         for i, gpx_file in enumerate(gpx_files):
             print(gpx_file)
             resampled = resample(process_gpx(gpx_file))
+            resampled.insert(0, 'len', len(resampled))
             resampled['index'] = i
             resampled.to_csv(open_file, header=False)
 

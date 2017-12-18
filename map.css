@@ -4,3 +4,27 @@
     font-family: monospace;
     cursor: default;
 }
+
+path {
+    fill: none;
+    stroke: red;
+    stroke-width: 2;
+    stroke-opacity: 0.2
+}
+
+.runner {
+    fill: none;
+    stroke: black;
+}
+
+.legend-outline {
+    fill: #fff;
+    stroke: #555;
+    stroke-width: 0.25;
+}
+
+.progress-bar {
+    fill: #fff;
+    stroke: #000;
+    stroke-width: 1;
+}
