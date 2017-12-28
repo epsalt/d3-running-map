@@ -1,5 +1,6 @@
-/*global d3*/
-/*global window*/
+/*global 
+  d3, window
+*/
 
 var pi = Math.PI,
     tau = 2 * pi;
