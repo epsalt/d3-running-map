@@ -1,4 +1,4 @@
-/*global 
+/*global
   d3, window
 */
 
@@ -39,50 +39,39 @@ d3.csv("data/gpx_rollup.csv", function (error, data) {
         .domain([0, maxElapsed])
         .range([0, 95]);
 
-    var fpsInterval = 1000 / 60,
-        elapsed = 0,
+    var interval = 50,
+        t = 0,
         going = true,
-        lastFrameDraw = Date.now(),
-        date,
-        reqID,
-        timeSinceLastFrame;
+        date;
 
-    function draw(elapsed) {
-        tracks.attr("d", function (d) { return path({type: "LineString", coordinates: d.values.slice(0, elapsed)}); });
-        runners.attr("transform", function (d) { return "translate(" + projection(d.values[Math.min(elapsed, d.values[0][3] - 1)]) + ")"; });
+    function draw(t) {
+        tracks.attr("d", function (d) { return path({type: "LineString", coordinates: d.values.slice(0, t)}); });
+        runners.attr("transform", function (d) { return "translate(" + projection(d.values[Math.min(t, d.values[0][3] - 1)]) + ")"; });
 
         svg.select(".progress")
-            .attr("cx", x(elapsed));
+            .attr("cx", x(t));
 
         date = new Date(null);
-        date.setSeconds(elapsed * 30);
+        date.setSeconds(t * 30);
 
         svg.select("#elapsed")
             .text("Elapsed: " + date.toISOString().substr(11, 5));
     }
 
-    function step() {
-        timeSinceLastFrame = Date.now() - lastFrameDraw;
-        if (timeSinceLastFrame > fpsInterval) {
-            draw(elapsed);
-            lastFrameDraw = Date.now();
+    d3.interval(function() {
+        if (t > maxElapsed) t = 0;
+        if (going) {
+            draw(t);
+            t++;
         }
-        if (elapsed > maxElapsed) {
-            elapsed = 0;
-        }
-        reqID = window.requestAnimationFrame(step);
-        elapsed++;
-    }
-    reqID = window.requestAnimationFrame(step);
+    }, interval);
 
     function pauseResume() {
         if (going) {
-            window.cancelAnimationFrame(reqID);
             svg.select("#pause-resume")
                 .text("Resume");
             going = false;
         } else {
-            reqID = window.requestAnimationFrame(step);
             svg.select("#pause-resume")
                 .text("Pause");
             going = true;
@@ -90,8 +79,8 @@ d3.csv("data/gpx_rollup.csv", function (error, data) {
     }
 
     function restart() {
-        elapsed = 0;
-        draw(elapsed);
+        t = 0;
+        draw(t);
     }
 
     // OSM Map Tiles
