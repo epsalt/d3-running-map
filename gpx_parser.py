@@ -34,8 +34,6 @@ def process_gpx(gpx_file):
     tree = ET.parse(gpx_file)
     trksegs = tree.getroot()[1][1].findall('{http://www.topografix.com/GPX/1/1}trkpt')
 
-    last_written = -9999
-
     out = list()
     for i, trkpt in enumerate(trksegs):
         lat = trkpt.attrib['lat']
@@ -53,7 +51,6 @@ def resample(data):
     df = df[~df.index.duplicated(keep='first')]
     df['elapsed'] = df['datetime'] - min((df['datetime']))
     df = df.set_index('elapsed')
-    df = df[~df.index.duplicated(keep='first')]
     resampled = df.resample("30S").pad().interpolate(method="linear")
     resampled = resampled.drop(['datetime'], axis=1)   
     return resampled
