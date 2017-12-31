@@ -43,20 +43,18 @@ d3.csv("data/gpx_rollup.csv", function (error, data) {
         elapsed = 0,
         going = true,
         lastFrameDraw = Date.now(),
+        date,
         reqID,
         timeSinceLastFrame;
 
     function draw(elapsed) {
-        svg.selectAll("path")
-            .attr("d", function (d) { return path({type: "LineString", coordinates: d.values.slice(0, elapsed)}); });
-
-        svg.selectAll(".runner")
-            .attr("transform", function (d) { return "translate(" + projection(d.values[Math.min(elapsed, d.values[0][3] - 1)]) + ")"; });
+        tracks.attr("d", function (d) { return path({type: "LineString", coordinates: d.values.slice(0, elapsed)}); });
+        runners.attr("transform", function (d) { return "translate(" + projection(d.values[Math.min(elapsed, d.values[0][3] - 1)]) + ")"; });
 
         svg.select(".progress")
             .attr("cx", x(elapsed));
 
-        var date = new Date(null);
+        date = new Date(null);
         date.setSeconds(elapsed * 30);
 
         svg.select("#elapsed")
@@ -106,7 +104,7 @@ d3.csv("data/gpx_rollup.csv", function (error, data) {
         .attr("width", tiles.scale)
         .attr("height", tiles.scale);
 
-    svg.selectAll("path")
+    var tracks = svg.selectAll("path")
         .data(nested)
         .enter().append("path");
 
