@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """gpx to csv parser
 
-This python file parses a directory of gpx files (DATA_DIR) exported
-from Strava to a single csv file (OUTFILE) using the xml module and
+This python file parses a directory of gpx files (args.dir) exported
+from Strava to a single csv file (args.out) using the xml module and
 dateutil parser.
 
 Data is resampled to a constant timestep using pandas and a supplied
-interval (INTERVAL). For interval conventions see
+interval (args.resample). For interval conventions see
 http://pandas.pydata.org/pandas-docs/stable/timeseries.html#offset-aliases
 
 """
 
+import argparse
 import csv
 import glob
 import xml.etree.ElementTree as ET
@@ -19,10 +20,6 @@ from os.path import join
 import pandas as pd
 from dateutil import parser
 from pandas import DataFrame
-
-DATA_DIR = "./data"
-OUT_FILE = "./data/gpx_rollup.csv"
-INTERVAL = "30S"
 
 def process_gpx(gpx_file):
     """Parse a gpx file into a list of lists [[lat, lon, datetime], ...]
@@ -97,4 +94,20 @@ def batch_process_gpx(data_dir, out_file, interval):
             resampled.to_csv(open_file, header=False)
 
 if __name__ == "__main__":
-    batch_process_gpx(DATA_DIR, OUT_FILE, INTERVAL)
+    arg_parser = argparse.ArgumentParser(
+        description="Batch convert gpx files to a a csv file")
+
+    arg_parser.add_argument("dir", type=str,
+                            help="directory containing .gpx files to be parsed")
+
+    arg_parser.add_argument("-o", "--out", type=str,
+                            default="activity_data.csv",
+                            help="output file location")
+
+    arg_parser.add_argument("-r", "--resample",
+                            default="30S", type=str,
+                            help="resample interval, for more information see pandas offset aliases")
+
+    args = arg_parser.parse_args()
+
+    batch_process_gpx(args.dir, args.out, args.resample)
