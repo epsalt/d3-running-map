@@ -2,15 +2,12 @@
   d3, window
 */
 
-var pi = Math.PI,
-    tau = 2 * pi;
-
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 
 var projection = d3.geoMercator()
-    .scale((1 << 20) / tau)
+    .scale((1 << 20) / 2 * Math.PI)
     .translate([width / 2, height / 2])
     .center([-114.09, 51.0375])
     .precision(0);
@@ -21,7 +18,7 @@ var path = d3.geoPath()
 
 var tiles = d3.tile()
     .size([width, height])
-    .scale(projection.scale() * tau)
+    .scale(projection.scale() * 2 * Math.PI)
     .translate(projection([0, 0]))();
 
 d3.csv("activity_data.csv", function (error, data) {
