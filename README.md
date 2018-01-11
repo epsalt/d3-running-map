@@ -39,9 +39,9 @@ Change the center and scale to match the scope of your data in the
 
 ```javascript
 var projection = d3.geoMercator()
-    .scale((1 << 20) / 2 * Math.PI) ## Desired scale
+    .scale((1 << 20) / 2 * Math.PI) // Desired scale
     .translate([width / 2, height / 2])
-    .center([-114.09, 51.0375]) ## Coordinates of the center of your map
+    .center([-114.09, 51.0375]) // Coordinates of the center of your map
     .precision(0);
 ```
 
