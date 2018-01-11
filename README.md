@@ -6,7 +6,7 @@ post coming soon.
 ![Running Map
 GIF](https://raw.githubusercontent.com/epsalt/d3-running-map/master/running_map.gif)
 
-Map tiles copyright [OpenStreetMap][http://www.openstreetmap.org/copyright] contributors.
+Map tiles copyright [OpenStreetMap](http://www.openstreetmap.org/copyright) contributors.
 
 This project was inspired by the [Strava Global
 Heatmap](https://labs.strava.com/heatmap/) and the [America's Cup
@@ -37,7 +37,7 @@ $ python3 gpx_parser.py ./data -o activity_data.csv
 Change the center and scale to match the scope of your data in the
 `running_map.js` file.
 
-```
+```javascript
 var projection = d3.geoMercator()
     .scale((1 << 20) / 2 * Math.PI) ## Desired scale
     .translate([width / 2, height / 2])
