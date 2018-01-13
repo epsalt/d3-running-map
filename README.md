@@ -34,15 +34,15 @@ Convert the data from `GPX` to a single `CSV` file using the
 $ python3 gpx_parser.py ./data -o activity_data.csv
 ```
 
-Change the center and scale to match the scope of your data in the
+Change the center and scale to match the your data in the
 `running_map.js` file.
 
 ```javascript
-var projection = d3.geoMercator()
-    .scale((1 << 20) / 2 * Math.PI) // Desired scale
-    .translate([width / 2, height / 2])
-    .center([-114.09, 51.0375]) // Coordinates of the center of your map
-    .precision(0);
+var config = {
+    "scale": 20, // Put your scale here
+    "lat": 51.0375, // Put your latitude here
+    "lon": -114.09 // Put your longitude here
+};
 ```
 
 Spin up a webserver with Python.

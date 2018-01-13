@@ -2,14 +2,20 @@
   d3, window
 */
 
+var config = {
+    "scale": 17, // Put your scale here
+    "lat": 51.0375, // Put your latitude here
+    "lon": -114.09 // Put your longitude here
+};
+
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 
 var projection = d3.geoMercator()
-    .scale((1 << 20) / 2 * Math.PI)
+    .scale((1 << config.scale) / 2 * Math.PI)
     .translate([width / 2, height / 2])
-    .center([-114.09, 51.0375])
+    .center([config.lon, config.lat])
     .precision(0);
 
 var path = d3.geoPath()
