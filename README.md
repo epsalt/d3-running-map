@@ -4,7 +4,7 @@ Visualizing Strava data with D3.js. Full interactive version and blog
 post coming soon.
 
 ![Running Map
-GIF](https://raw.githubusercontent.com/epsalt/d3-running-map/master/running_map.gif)
+GIF](https://raw.githubusercontent.com/epsalt/d3-running-map/master/assets/running_map.gif)
 
 Map tiles copyright [OpenStreetMap](http://www.openstreetmap.org/copyright) contributors.
 
