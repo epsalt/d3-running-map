@@ -31,7 +31,7 @@ Convert the data from `GPX` to a single `CSV` file using the
 `data` is a directory where your `GPX` files are located.
 
 ```
-$ python3 gpx_parser.py ./data -o activity_data.csv
+$ python3 gpx_parser.py ./data -o ./assets/activity_data.csv
 ```
 
 Change the center and scale to match the your data in the

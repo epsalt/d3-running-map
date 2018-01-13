@@ -27,7 +27,7 @@ var tiles = d3.tile()
     .scale(projection.scale() * 2 * Math.PI)
     .translate(projection([0, 0]))();
 
-d3.csv("activity_data.csv", function (error, data) {
+d3.csv("assets/activity_data.csv", function (error, data) {
     if (error) { throw error; }
 
     data = data.map(function (d) { return [+d.lon, +d.lat, +d.index, +d.len]; });
