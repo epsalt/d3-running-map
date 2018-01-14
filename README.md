@@ -1,7 +1,9 @@
 # Animated D3 Running Map
 
-Visualizing Strava data with D3.js. Full interactive version and blog
-post coming soon.
+Visualizing Strava data with D3.js. See a live version of the
+visualization [here](https://epsalt.ca/projects/running-map) and and
+accompanying blog post on my
+[website](https://epsalt.ca/2018/01/running-map).
 
 ![Running Map
 GIF](https://raw.githubusercontent.com/epsalt/d3-running-map/master/assets/running_map.gif)
