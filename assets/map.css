@@ -1,30 +1,58 @@
-.legend {
-    font-size: 12px;
-    fill: #000;
+.map-wrapper {
+    position: relative;
+    width: 800px;
+    height: 600px;
     font-family: monospace;
-    cursor: default;
+    font-size: 16px;
 }
 
-path {
-    fill: none;
-    stroke: red;
-    stroke-width: 2;
-    stroke-opacity: 0.2
+.map-wrapper canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
-.runner {
-    fill: none;
-    stroke: black;
+.map-wrapper svg {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
-.legend-outline {
-    fill: #fff;
-    stroke: #555;
-    stroke-width: 0.25;
+#timer {
+    position: absolute;
+    top: 8px;
+    left: 10px;
 }
 
-.progress-bar {
-    fill: #fff;
-    stroke: #000;
-    stroke-width: 1;
+#controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 195px;
+    height: 70px;
+    background: white;
+    border-radius: 3px;
+    border: 1px solid #666;
+}
+
+button {
+    position: absolute;
+    width: 80px;
+    height: 30px;
+    top: 32px;
+    margin: 0;
+    padding: 0 12px;
+    background: white;
+    border-radius: 2px;
+    border: 1px solid #666;
+    font-family: monospace;
+    cursor: pointer;
+}
+
+#play-button {
+    left: 10px;
+}
+
+#restart-button {
+    left: 102px;
 }

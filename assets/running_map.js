@@ -3,29 +3,48 @@
 */
 
 var config = {
-    "scale": 17, // Put your scale here
-    "lat": 51.0375, // Put your latitude here
-    "lon": -114.09 // Put your longitude here
+    "scale": 17,
+    "lat": 51.0375,
+    "lon": -114.09,
+    "fps": 15,
+    "resampleInterval": 30
 };
 
-var svg = d3.select("svg"),
-    width = +svg.attr("width"),
-    height = +svg.attr("height");
+var canvas = document.querySelector("canvas"),
+    context = canvas.getContext("2d"),
+    detachedContainer = document.createElement("custom"),
+    dataContainer = d3.select(detachedContainer),
+    width = canvas.width,
+    height = canvas.height;
 
 var projection = d3.geoMercator()
-    .scale((1 << config.scale) / 2 * Math.PI)
+    .scale((1 << 17) / 2 * Math.PI)
     .translate([width / 2, height / 2])
     .center([config.lon, config.lat])
     .precision(0);
 
 var path = d3.geoPath()
     .projection(projection)
-    .pointRadius(3.5);
+    .pointRadius(3.5)
+    .context(context);
 
 var tiles = d3.tile()
     .size([width, height])
     .scale(projection.scale() * 2 * Math.PI)
     .translate(projection([0, 0]))();
+
+var playButton = d3.select("#play-button"),
+    restartButton = d3.select("#restart-button"),
+    timer = d3.select("#timer");
+
+d3.select("svg").selectAll("image")
+    .data(tiles)
+    .enter().append("image")
+    .attr("xlink:href", function (d) { return "http://" + "abc"[d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+    .attr("x", function (d) { return (d[0] + tiles.translate[0]) * tiles.scale; })
+    .attr("y", function (d) { return (d[1] + tiles.translate[1]) * tiles.scale; })
+    .attr("width", tiles.scale)
+    .attr("height", tiles.scale);
 
 d3.csv("assets/activity_data.csv", function (error, data) {
     if (error) { throw error; }
@@ -36,119 +55,105 @@ d3.csv("assets/activity_data.csv", function (error, data) {
         .key(function (d) { return d[2]; })
         .entries(data);
 
+    var tracks = dataContainer.selectAll("custom.geoPath")
+        .data(nested)
+        .enter()
+        .append("custom")
+        .classed("geoPath", true)
+        .attr("strokeStyle", "rgba(74,20,134,0.2)")
+        .attr("lineWidth", 3);
+
+    var runners = dataContainer.selectAll("custom.circle")
+        .data(nested)
+        .enter()
+        .append("custom")
+        .classed("circle", true)
+        .attr("lineWidth", 1)
+        .attr("radius", 2)
+        .attr("strokeStyle", "black");
+
     var maxElapsed = Math.max.apply(Math, (data.map(function (d) { return d[3]; })));
 
-    var x = d3.scaleLinear()
-        .domain([0, maxElapsed])
-        .range([0, 95]);
-
-    var interval = 50,
+    var interval = 1000 / config.fps,
         t = 0,
         going = true,
-        date;
+        pct,
+        time;
 
-    function draw(t) {
-        tracks.attr("d", function (d) { return path({type: "LineString", coordinates: d.values.slice(0, t)}); });
-        runners.attr("transform", function (d) { return "translate(" + projection(d.values[Math.min(t, d.values[0][3] - 1)]) + ")"; });
+    function drawCanvas() {
+        context.clearRect(0, 0, width, height);
 
-        svg.select(".progress")
-            .attr("cx", x(t));
+        tracks.each(function () {
+            var node = d3.select(this);
 
-        date = new Date(null);
-        date.setSeconds(t * 30);
+            context.strokeStyle = node.attr("strokeStyle");
+            context.lineWidth = node.attr("lineWidth");
+            context.beginPath();
+            path({type: "LineString", coordinates: node.data()[0].values.slice(0, node.attr("t"))});
+            context.stroke();
+        });
 
-        svg.select("#elapsed")
-            .text("Elapsed: " + date.toISOString().substr(11, 5));
+        runners.each(function () {
+            var node = d3.select(this);
+
+            context.lineWidth = node.attr("lineWidth");
+            context.strokeStyle = node.attr("strokeStyle");
+            context.beginPath();
+            context.arc(node.attr("x"), node.attr("y"), node.attr("radius"), 0, 2 * Math.PI);
+            context.stroke();
+
+        });
+
     }
 
-    d3.interval(function() {
-        if (t > maxElapsed) t = 0;
+    var coord_slicer = function (d, t) {
+        return projection(d.values[Math.min(t, d.values[0][3] - 1)]);
+    };
+
+    function step(t) {
+
+        runners
+            .attr("x", function (d) { return coord_slicer(d, t)[0]; })
+            .attr("y", function (d) { return coord_slicer(d, t)[1]; });
+
+        tracks
+            .attr("t", t);
+
+        time = new Date(null);
+        time.setSeconds(t * config.resampleInterval);
+        time = time.toISOString().substr(11, 5);
+        pct = (t / maxElapsed * 100).toFixed(0);
+        if (pct.length === 1) { pct = "0" + pct; }
+
+        timer.text("Elapsed: " + time + "/" + pct + "%");
+
+        drawCanvas();
+    }
+
+    d3.interval(function () {
+        if (t > maxElapsed) { t = 0; }
         if (going) {
-            draw(t);
+            step(t);
             t++;
         }
     }, interval);
 
     function pauseResume() {
         if (going) {
-            svg.select("#pause-resume")
-                .text("Resume");
+            playButton.text("Resume");
             going = false;
         } else {
-            svg.select("#pause-resume")
-                .text("Pause");
+            playButton.text("Pause");
             going = true;
         }
     }
 
     function restart() {
         t = 0;
-        draw(t);
+        step(t);
     }
 
-    // OSM Map Tiles
-    svg.selectAll("image")
-        .data(tiles)
-        .enter().append("image")
-        .attr("xlink:href", function (d) { return "http://" + "abc"[d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
-        .attr("x", function (d) { return (d[0] + tiles.translate[0]) * tiles.scale; })
-        .attr("y", function (d) { return (d[1] + tiles.translate[1]) * tiles.scale; })
-        .attr("width", tiles.scale)
-        .attr("height", tiles.scale);
+    playButton.on("click", pauseResume);
+    restartButton.on("click", restart);
 
-    var tracks = svg.selectAll("path")
-        .data(nested)
-        .enter().append("path");
-
-    var runners = svg.selectAll(".runner")
-        .data(nested)
-        .enter().append("g")
-        .attr("class", "runner");
-
-    runners.append("circle")
-        .attr("r", 2);
-
-    // Legend Elements
-    svg.append("rect")
-        .attr("x", width - 130)
-        .attr("y", height - 65)
-        .attr("width", 120)
-        .attr("height", 60)
-        .attr("class", "legend-outline");
-
-    svg.append("text")
-        .attr("x", width - 122.5)
-        .attr("y", height - 47.5)
-        .attr("class", "legend")
-        .attr("id", "elapsed")
-        .text("Elapsed: 00:00");
-
-    svg.append("rect")
-        .attr("x", width - 122.5)
-        .attr("y", height - 37.5)
-        .attr("height", 5)
-        .attr("width", 100)
-        .attr("class", "progress-bar");
-
-    svg.append("circle")
-        .attr("class", "progress")
-        .attr("cy", height - 35)
-        .attr("transform", "translate(" + (width - 120) + " , 0)")
-        .attr("r", 2)
-        .attr("fill", "red");
-
-    svg.append("text")
-        .attr("x", width - 122.5)
-        .attr("y", height - 15)
-        .attr("class", "legend")
-        .attr("id", "pause-resume")
-        .text("Pause")
-        .on("click", function () { pauseResume(); });
-
-    svg.append("text")
-        .attr("x", width - 70)
-        .attr("y", height - 15)
-        .attr("class", "legend")
-        .text("Restart")
-        .on("click", function () { restart(); });
 });

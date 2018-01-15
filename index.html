@@ -9,8 +9,16 @@
     <script src="//d3js.org/d3-tile.v0.0.min.js"></script>
   </head>
   <body>
-    <svg width="800" height="600"></svg>
+    <div class="map-wrapper">
+      <svg width="800" height="600"></svg>
+      <canvas width="800" height="600"></canvas>
+      <div id="controls">
+        <div id="timer">Test</div>
+        <button id="play-button">Pause</button>
+        <button id="restart-button">Restart</button>
+      </div>
+    </div>
     <script src="assets/running_map.js"></script>
-    <p>Tiles copyright OpenStreetMap <a href="https://www.openstreetmap.org/copyright"/>contributors.</p>
+    <p>Tiles copyright OpenStreetMap <a href="https://www.openstreetmap.org/copyright">contributors.</a></p>
   </body>
 </html>
