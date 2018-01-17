@@ -1,6 +1,4 @@
-/*global
-  d3, window
-*/
+/*global d3, window */
 
 var config = {
     "scale": 17,
