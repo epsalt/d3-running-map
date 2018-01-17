@@ -1,7 +1,7 @@
 /*global d3, window */
 
 var config = {
-    "scale": 17,
+    "scale": 98304,
     "lat": 51.0375,
     "lon": -114.09,
     "fps": 15,
@@ -16,7 +16,7 @@ var canvas = document.querySelector("canvas"),
     height = canvas.height;
 
 var projection = d3.geoMercator()
-    .scale((1 << 17) / 2 * Math.PI)
+    .scale((config.scale) / 2 * Math.PI)
     .translate([width / 2, height / 2])
     .center([config.lon, config.lat])
     .precision(0);
