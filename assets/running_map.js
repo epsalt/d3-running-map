@@ -53,8 +53,18 @@ d3.csv("assets/activity_data.csv", function (error, data) {
         .key(function (d) { return d[2]; })
         .entries(data);
 
+    var maxElapsed = Math.max.apply(Math, (data.map(function (d) { return d[3]; })));
+
+    var trackData = nested.map(function(obj) {
+        obj.tracks = d3.range(0, maxElapsed + 1).map(function(d) {
+            return obj.values.slice(0, d);
+        });
+
+        return obj;
+    });
+
     var tracks = dataContainer.selectAll("custom.geoPath")
-        .data(nested)
+        .data(trackData)
         .enter()
         .append("custom")
         .classed("geoPath", true)
@@ -69,8 +79,6 @@ d3.csv("assets/activity_data.csv", function (error, data) {
         .attr("lineWidth", 1)
         .attr("radius", 2)
         .attr("strokeStyle", "black");
-
-    var maxElapsed = Math.max.apply(Math, (data.map(function (d) { return d[3]; })));
 
     var interval = 1000 / config.fps,
         t = 0,
@@ -87,7 +95,7 @@ d3.csv("assets/activity_data.csv", function (error, data) {
             context.strokeStyle = node.attr("strokeStyle");
             context.lineWidth = node.attr("lineWidth");
             context.beginPath();
-            path({type: "LineString", coordinates: node.data()[0].values.slice(0, node.attr("t"))});
+            path({type: "LineString", coordinates: node.data()[0].tracks[node.attr("t")]});
             context.stroke();
         });
 
