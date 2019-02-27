@@ -88,27 +88,28 @@ d3.csv("assets/activity_data.csv", function (error, data) {
 
     function drawCanvas() {
         context.clearRect(0, 0, width, height);
+        context.strokeStyle = "rgba(74,20,134,0.2)";
+        context.lineWidth = 3;
 
         tracks.each(function () {
             var node = d3.select(this);
 
-            context.strokeStyle = node.attr("strokeStyle");
-            context.lineWidth = node.attr("lineWidth");
             context.beginPath();
             path({type: "LineString", coordinates: node.data()[0].tracks[node.attr("t")]});
             context.stroke();
         });
 
+        context.lineWidth = 1;
+        context.strokeStyle = "black";
+        context.beginPath();
+
         runners.each(function () {
             var node = d3.select(this);
-
-            context.lineWidth = node.attr("lineWidth");
-            context.strokeStyle = node.attr("strokeStyle");
-            context.beginPath();
-            context.arc(node.attr("x"), node.attr("y"), node.attr("radius"), 0, 2 * Math.PI);
-            context.stroke();
-
+            context.moveTo(parseFloat(node.attr("x")) + parseFloat(node.attr("radius")), node.attr("y"));
+            context.arc(node.attr("x")+ node.attr("radius"), node.attr("y"), node.attr("radius"), 0, 2 * Math.PI);
         });
+
+            context.stroke();
 
     }
 
