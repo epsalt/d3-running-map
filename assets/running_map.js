@@ -8,12 +8,13 @@ var config = {
     "resampleInterval": 30
 };
 
-var canvas = document.querySelector("canvas"),
-    context = canvas.getContext("2d"),
+var canvasPoints = document.querySelector("canvas#points"),
+    contextPoints = canvasPoints.getContext("2d"),
+    contextTracks = document.querySelector("canvas#tracks").getContext("2d"),
     detachedContainer = document.createElement("custom"),
     dataContainer = d3.select(detachedContainer),
-    width = canvas.width,
-    height = canvas.height;
+    width = canvasPoints.width,
+    height = canvasPoints.height;
 
 var projection = d3.geoMercator()
     .scale((config.scale) / 2 * Math.PI)
@@ -24,7 +25,7 @@ var projection = d3.geoMercator()
 var path = d3.geoPath()
     .projection(projection)
     .pointRadius(3.5)
-    .context(context);
+    .context(contextTracks);
 
 var tiles = d3.tile()
     .size([width, height])
@@ -55,16 +56,8 @@ d3.csv("assets/activity_data.csv", function (error, data) {
 
     var maxElapsed = Math.max.apply(Math, (data.map(function (d) { return d[3]; })));
 
-    var trackData = nested.map(function(obj) {
-        obj.tracks = d3.range(0, maxElapsed + 1).map(function(d) {
-            return obj.values.slice(0, d);
-        });
-
-        return obj;
-    });
-
     var tracks = dataContainer.selectAll("custom.geoPath")
-        .data(trackData)
+        .data(nested)
         .enter()
         .append("custom")
         .classed("geoPath", true)
@@ -86,30 +79,33 @@ d3.csv("assets/activity_data.csv", function (error, data) {
         pct,
         time;
 
-    function drawCanvas() {
-        context.clearRect(0, 0, width, height);
-        context.strokeStyle = "rgba(74,20,134,0.2)";
-        context.lineWidth = 3;
+    function drawCanvas(t) {
+        contextTracks.strokeStyle = "rgba(74,20,134,0.2)";
+        contextTracks.lineWidth = 3;
 
         tracks.each(function () {
-            var node = d3.select(this);
+            var node = d3.select(this),
+                trackData = node.data()[0].values;
 
-            context.beginPath();
-            path({type: "LineString", coordinates: node.data()[0].tracks[node.attr("t")]});
-            context.stroke();
+            if (t > 0 && t < trackData.length) {
+                contextTracks.beginPath();
+                path({type: "LineString", coordinates: [trackData[t-1], trackData[t]]});
+                contextTracks.stroke();
+            }
         });
 
-        context.lineWidth = 1;
-        context.strokeStyle = "black";
-        context.beginPath();
+        contextPoints.clearRect(0, 0, width, height);
+        contextPoints.lineWidth = 1;
+        contextPoints.strokeStyle = "black";
+        contextPoints.beginPath();
 
         runners.each(function () {
             var node = d3.select(this);
-            context.moveTo(parseFloat(node.attr("x")) + parseFloat(node.attr("radius")), node.attr("y"));
-            context.arc(node.attr("x")+ node.attr("radius"), node.attr("y"), node.attr("radius"), 0, 2 * Math.PI);
+            contextPoints.moveTo(parseFloat(node.attr("x")) + parseFloat(node.attr("radius")), node.attr("y"));
+            contextPoints.arc(node.attr("x")+ node.attr("radius"), node.attr("y"), node.attr("radius"), 0, 2 * Math.PI);
         });
 
-            context.stroke();
+            contextPoints.stroke();
 
     }
 
@@ -123,9 +119,6 @@ d3.csv("assets/activity_data.csv", function (error, data) {
             .attr("x", function (d) { return coord_slicer(d, t)[0]; })
             .attr("y", function (d) { return coord_slicer(d, t)[1]; });
 
-        tracks
-            .attr("t", t);
-
         time = new Date(null);
         time.setSeconds(t * config.resampleInterval);
         time = time.toISOString().substr(11, 5);
@@ -134,7 +127,7 @@ d3.csv("assets/activity_data.csv", function (error, data) {
 
         timer.text("Elapsed: " + time + "/" + pct + "%");
 
-        drawCanvas();
+        drawCanvas(t);
     }
 
     d3.interval(function () {
@@ -156,6 +149,7 @@ d3.csv("assets/activity_data.csv", function (error, data) {
     }
 
     function restart() {
+        contextTracks.clearRect(0, 0, width, height);
         t = 0;
         step(t);
     }
