@@ -60,18 +60,14 @@ d3.csv("assets/activity_data.csv", function (error, data) {
         .data(nested)
         .enter()
         .append("custom")
-        .classed("geoPath", true)
-        .attr("strokeStyle", "rgba(74,20,134,0.2)")
-        .attr("lineWidth", 3);
+        .classed("geoPath", true);
 
     var runners = dataContainer.selectAll("custom.circle")
         .data(nested)
         .enter()
         .append("custom")
         .classed("circle", true)
-        .attr("lineWidth", 1)
-        .attr("radius", 2)
-        .attr("strokeStyle", "black");
+        .attr("radius", 2);
 
     var interval = 1000 / config.fps,
         t = 0,
@@ -114,7 +110,6 @@ d3.csv("assets/activity_data.csv", function (error, data) {
     };
 
     function step(t) {
-
         runners
             .attr("x", function (d) { return coord_slicer(d, t)[0]; })
             .attr("y", function (d) { return coord_slicer(d, t)[1]; });
